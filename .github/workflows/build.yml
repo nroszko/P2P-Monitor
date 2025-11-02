@@ -23,13 +23,13 @@ jobs:
         dotnet-version: '8.0.x'
         
     - name: Restore dependencies
-      run: dotnet restore "P2P Chat Monitor/P2P Chat Monitor.vbproj"
+      run: dotnet restore "P2P Chat Monitor/P2P Chat Monitor.vbproj" -r win-x64
       
     - name: Build
-      run: dotnet build "P2P Chat Monitor/P2P Chat Monitor.vbproj" --configuration Release --no-restore
+      run: dotnet build "P2P Chat Monitor/P2P Chat Monitor.vbproj" --configuration Release --no-restore -r win-x64
       
     - name: Publish
-      run: dotnet publish "P2P Chat Monitor/P2P Chat Monitor.vbproj" --configuration Release --output ./publish --no-build -p:PublishSingleFile=true -p:SelfContained=true -p:RuntimeIdentifier=win-x64 -p:IncludeNativeLibrariesForSelfExtract=true
+      run: dotnet publish "P2P Chat Monitor/P2P Chat Monitor.vbproj" --configuration Release --output ./publish -r win-x64 -p:PublishSingleFile=true -p:SelfContained=true -p:IncludeNativeLibrariesForSelfExtract=true
       
     - name: Upload artifact
       uses: actions/upload-artifact@v4
