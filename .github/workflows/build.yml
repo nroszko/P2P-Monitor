@@ -1,0 +1,46 @@
+name: Build P2P Monitor
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore "P2P Chat Monitor/P2P Chat Monitor.vbproj"
+      
+    - name: Build
+      run: dotnet build "P2P Chat Monitor/P2P Chat Monitor.vbproj" --configuration Release --no-restore
+      
+    - name: Publish
+      run: dotnet publish "P2P Chat Monitor/P2P Chat Monitor.vbproj" --configuration Release --output ./publish --no-build -p:PublishSingleFile=true -p:SelfContained=true -p:RuntimeIdentifier=win-x64 -p:IncludeNativeLibrariesForSelfExtract=true
+      
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: P2P-Monitor-v${{ github.run_number }}
+        path: ./publish/*.exe
+        
+    - name: Upload to Release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./publish/*.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
