@@ -69,7 +69,7 @@ Public Class main
     Private _ovl As Control = Nothing
     Private _gif As Image
     Private _gifRect As Rectangle
-    Private METRICS_WEBHOOK_URL As String = "https://discord.com/api/webhooks/1428006646080208937/JfLDDOsm7n_BTkYIbjbXS0mR4sWaktOfBL9cRDAgnxeMp5r422oPZkYuRNz28koGB4l4"
+    ' Private METRICS_WEBHOOK_URL As String = "https://discord.com/api/webhooks/1428006646080208937/JfLDDOsm7n_BTkYIbjbXS0mR4sWaktOfBL9cRDAgnxeMp5r422oPZkYuRNz28koGB4l4"
     Private CLIENT_ID As String = Environment.UserName & "@" & Environment.MachineName
     Private tray As NotifyIcon
     Private trayMenu As ContextMenuStrip
@@ -313,28 +313,28 @@ Public Class main
         tray.Visible = False
     End Sub
 
-    Private Sub StartMetrics()
-        metricsTimer = New System.Threading.Timer(AddressOf MetricsTick, Nothing, 60_000, 60_000)
-    End Sub
+    ' Private Sub StartMetrics()
+    '     metricsTimer = New System.Threading.Timer(AddressOf MetricsTick, Nothing, 60_000, 60_000)
+    ' End Sub
 
-    Private Async Sub MetricsTick(state As Object)
-        Try
-            Dim payload = "{""content"":""HB " & CLIENT_ID & " " & DateTimeOffset.UtcNow.ToUnixTimeSeconds() & """}"
-            Dim ok = Await DiscordHelpers.PostJsonOk(METRICS_WEBHOOK_URL, payload)
-            If Not ok Then
-                AppendLog("⚠ Metrics heartbeat failed (post).")
-            End If
-        Catch ex As Exception
-            AppendLog("⚠ Metrics heartbeat failed: " & ex.Message)
-        End Try
-    End Sub
+    ' Private Async Sub MetricsTick(state As Object)
+    '     Try
+    '         Dim payload = "{""content"":""HB " & CLIENT_ID & " " & DateTimeOffset.UtcNow.ToUnixTimeSeconds() & """}"
+    '         Dim ok = Await DiscordHelpers.PostJsonOk(METRICS_WEBHOOK_URL, payload)
+    '         If Not ok Then
+    '             AppendLog("⚠ Metrics heartbeat failed (post).")
+    '         End If
+    '     Catch ex As Exception
+    '         AppendLog("⚠ Metrics heartbeat failed: " & ex.Message)
+    '     End Try
+    ' End Sub
 
-    Private Sub StopMetrics()
-        If metricsTimer IsNot Nothing Then
-            metricsTimer.Dispose()
-            metricsTimer = Nothing
-        End If
-    End Sub
+    ' Private Sub StopMetrics()
+    '     If metricsTimer IsNot Nothing Then
+    '         metricsTimer.Dispose()
+    '         metricsTimer = Nothing
+    '     End If
+    ' End Sub
 
     Private Shared Function ParseFolders(raw As String) As List(Of String)
         Dim list As New List(Of String)()
@@ -776,7 +776,7 @@ Public Class main
             My.Settings.Save()
         End If
         selfieEmbed.Text = My.Settings.SelfieEmbedSet
-        StartMetrics()
+        ' StartMetrics()
         Await FetchFailRules()
         Await UpdateHelper.CheckForUpdatesAndPrompt(Me, AddressOf AppendLog,
                                                     Function() monitorAutoUpdate IsNot Nothing AndAlso monitorAutoUpdate.Checked)
@@ -789,7 +789,7 @@ Public Class main
             AppendLog("Minimized to tray (right-click tray icon for options).")
             Return
         End If
-        StopMetrics()
+        ' StopMetrics()
         StopSelfieTimer()
         StopUpdateTimer()
         MyBase.OnFormClosing(e)
