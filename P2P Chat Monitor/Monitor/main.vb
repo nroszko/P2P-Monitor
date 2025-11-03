@@ -70,7 +70,7 @@ Public Class main
     Private _gif As Image
     Private _gifRect As Rectangle
     ' Private METRICS_WEBHOOK_URL As String = "https://discord.com/api/webhooks/1428006646080208937/JfLDDOsm7n_BTkYIbjbXS0mR4sWaktOfBL9cRDAgnxeMp5r422oPZkYuRNz28koGB4l4"
-    Private CLIENT_ID As String = Environment.UserName & "@" & Environment.MachineName
+    ' Private CLIENT_ID As String = Environment.UserName & "@" & Environment.MachineName
     Private tray As NotifyIcon
     Private trayMenu As ContextMenuStrip
     Private mnuShow As ToolStripMenuItem
