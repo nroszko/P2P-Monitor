@@ -637,10 +637,10 @@ Public Class ScreenshotHelpers
         ' Sample a few pixels to check if image is mostly black
         Dim sampleCount As Integer = 0
         Dim blackCount As Integer = 0
-        Dim step As Integer = Math.Max(bmp.Width \ 20, 10)
+        Dim stepSize As Integer = Math.Max(bmp.Width \ 20, 10)
 
-        For x As Integer = step To bmp.Width - 1 Step step
-            For y As Integer = step To bmp.Height - 1 Step step
+        For x As Integer = stepSize To bmp.Width - 1 Step stepSize
+            For y As Integer = stepSize To bmp.Height - 1 Step stepSize
                 Try
                     Dim pixel As Color = bmp.GetPixel(x, y)
                     sampleCount += 1
