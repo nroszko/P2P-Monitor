@@ -1942,9 +1942,30 @@ Public Class main
             AppendLog("🧪 Testing screenshot capture...")
             AppendLog($"Screenshot mode: {If(ScreenshotHelpers.UseCompositorSafe, "Compositor Safe (WGC)", "Legacy (BitBlt/PrintWindow)")}")
 
-            ' Validate webhook is configured
-            If String.IsNullOrWhiteSpace(WEBHOOK_URL) Then
-                AppendLog("❌ Default webhook not configured. Please configure webhooks before testing.")
+            ' Validate webhook is configured - check for any webhook
+            Dim testWebhook As String = Nothing
+            If Not String.IsNullOrWhiteSpace(SELFIE_CHANNEL) Then
+                testWebhook = SELFIE_CHANNEL
+                AppendLog("Using Selfie webhook for test.")
+            ElseIf Not String.IsNullOrWhiteSpace(WEBHOOK_URL) Then
+                testWebhook = WEBHOOK_URL
+                AppendLog("Using Default webhook for test.")
+            ElseIf Not String.IsNullOrWhiteSpace(CHAT_CHANNEL) Then
+                testWebhook = CHAT_CHANNEL
+                AppendLog("Using Chat webhook for test.")
+            ElseIf Not String.IsNullOrWhiteSpace(QUEST_CHANNEL) Then
+                testWebhook = QUEST_CHANNEL
+                AppendLog("Using Quest webhook for test.")
+            ElseIf Not String.IsNullOrWhiteSpace(ERROR_CHANNEL) Then
+                testWebhook = ERROR_CHANNEL
+                AppendLog("Using Error webhook for test.")
+            ElseIf Not String.IsNullOrWhiteSpace(TASK_CHANNEL) Then
+                testWebhook = TASK_CHANNEL
+                AppendLog("Using Task webhook for test.")
+            End If
+
+            If String.IsNullOrWhiteSpace(testWebhook) Then
+                AppendLog("❌ No webhook configured. Please configure at least one webhook before testing.")
                 Return
             End If
 
@@ -1982,7 +2003,7 @@ Public Class main
 
                 Dim err As String = Nothing
                 If DiscordHelpers.IsJson(testPayload, err) Then
-                    Await DiscordHelpers.UploadFile(WEBHOOK_URL, screenshotPath, testPayload, AddressOf AppendLog)
+                    Await DiscordHelpers.UploadFile(testWebhook, screenshotPath, testPayload, AddressOf AppendLog)
                     AppendLog("✅ Test screenshot sent to Discord successfully!")
                 Else
                     AppendLog($"⚠ Invalid JSON payload: {err}")
