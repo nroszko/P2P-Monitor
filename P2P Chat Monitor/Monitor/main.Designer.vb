@@ -88,6 +88,7 @@ Partial Class main
         monitorDiscord = New MaterialSkin.Controls.MaterialButton()
         btnBackToMenu = New MaterialSkin.Controls.MaterialButton()
         btnCheckUpdate = New MaterialSkin.Controls.MaterialButton()
+        btnTestScreenshot = New MaterialSkin.Controls.MaterialButton()
         Hamburger.SuspendLayout()
         discordManagement.SuspendLayout()
         monitorManagement.SuspendLayout()
@@ -1324,10 +1325,32 @@ Partial Class main
         btnCheckUpdate.UseAccentColor = False
         btnCheckUpdate.UseVisualStyleBackColor = True
         ' 
+        ' btnTestScreenshot
+        ' 
+        btnTestScreenshot.AutoSize = False
+        btnTestScreenshot.AutoSizeMode = AutoSizeMode.GrowAndShrink
+        btnTestScreenshot.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default
+        btnTestScreenshot.Depth = 0
+        btnTestScreenshot.HighEmphasis = True
+        btnTestScreenshot.Icon = Nothing
+        btnTestScreenshot.Location = New Point(10, 476)
+        btnTestScreenshot.Margin = New Padding(4, 6, 4, 6)
+        btnTestScreenshot.MouseState = MaterialSkin.MouseState.HOVER
+        btnTestScreenshot.Name = "btnTestScreenshot"
+        btnTestScreenshot.NoAccentTextColor = Color.Empty
+        btnTestScreenshot.RightToLeft = RightToLeft.Yes
+        btnTestScreenshot.Size = New Size(168, 36)
+        btnTestScreenshot.TabIndex = 71
+        btnTestScreenshot.Text = "Test Screenshot"
+        btnTestScreenshot.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained
+        btnTestScreenshot.UseAccentColor = False
+        btnTestScreenshot.UseVisualStyleBackColor = True
+        ' 
         ' main
         ' 
         AutoScaleMode = AutoScaleMode.None
         ClientSize = New Size(1330, 732)
+        Controls.Add(btnTestScreenshot)
         Controls.Add(btnCheckUpdate)
         Controls.Add(btnBackToMenu)
         Controls.Add(monitorDiscord)
@@ -1445,4 +1468,5 @@ Partial Class main
     Friend WithEvents monitorAutoUpdate As MaterialSkin.Controls.MaterialSwitch
     Friend WithEvents selfieEmbed As MaterialSkin.Controls.MaterialMultiLineTextBox
     Friend WithEvents btnCheckUpdate As MaterialSkin.Controls.MaterialButton
+    Friend WithEvents btnTestScreenshot As MaterialSkin.Controls.MaterialButton
 End Class

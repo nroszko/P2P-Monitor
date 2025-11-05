@@ -474,4 +474,50 @@ Public Class DiscordHelpers
         payload = RemoveImageWhenNoScreenshot(payload, screenshotRef)
         Return payload
     End Function
+
+    Public Shared Function BuildTestScreenshotPayload(mention As String,
+                                                      screenshotRef As String,
+                                                      windowName As String,
+                                                      timestamp As DateTime,
+                                                      captureMethod As String) As String
+        Dim time12h As String = timestamp.ToString("hh:mm:ss tt")
+        Dim time24h As String = timestamp.ToString("HH:mm:ss")
+
+        Dim payload As String = $"{{
+  ""content"": ""{JsonSafe(mention)} 🧪 **Screenshot Test**"",
+  ""embeds"": [
+    {{
+      ""title"": ""Screenshot Capture Test"",
+      ""description"": ""Testing screenshot functionality"",
+      ""color"": 5814783,
+      ""fields"": [
+        {{
+          ""name"": ""Window"",
+          ""value"": ""{JsonSafe(windowName)}"",
+          ""inline"": true
+        }},
+        {{
+          ""name"": ""Capture Method"",
+          ""value"": ""{JsonSafe(captureMethod)}"",
+          ""inline"": true
+        }},
+        {{
+          ""name"": ""Time"",
+          ""value"": ""{time12h}"",
+          ""inline"": true
+        }}
+      ],
+      ""image"": {{
+        ""url"": ""attachment://{JsonSafe(screenshotRef)}""
+      }},
+      ""footer"": {{
+        ""text"": ""P2P Monitor Test""
+      }},
+      ""timestamp"": ""{timestamp:yyyy-MM-ddTHH:mm:ss.fffZ}""
+    }}
+  ]
+}}"
+
+        Return payload
+    End Function
 End Class

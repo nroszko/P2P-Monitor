@@ -1936,6 +1936,71 @@ Public Class main
             AppendLog($"Clean log failed: {ex.Message}")
         End Try
     End Sub
+
+    Private Async Sub btnTestScreenshot_Click(sender As Object, e As EventArgs) Handles btnTestScreenshot.Click
+        Try
+            AppendLog("🧪 Testing screenshot capture...")
+            AppendLog($"Screenshot mode: {If(ScreenshotHelpers.UseCompositorSafe, "Compositor Safe (WGC)", "Legacy (BitBlt/PrintWindow)")}")
+
+            ' Validate webhook is configured
+            If String.IsNullOrWhiteSpace(WEBHOOK_URL) Then
+                AppendLog("❌ Default webhook not configured. Please configure webhooks before testing.")
+                Return
+            End If
+
+            ' Find any DreamBot window
+            Dim testFolder As String = InputBox("Enter DreamBot window nickname/title to test:" & vbCrLf & "(Leave empty to test with any DreamBot window)", "Test Screenshot", "")
+            
+            If String.IsNullOrWhiteSpace(testFolder) Then
+                ' Try to find any DreamBot window
+                AppendLog("Searching for any DreamBot window...")
+                Dim testHwnd = ScreenshotHelpers.FindByTitleChunk("DreamBot")
+                If testHwnd = IntPtr.Zero Then
+                    AppendLog("❌ No DreamBot window found. Make sure DreamBot is running.")
+                    Return
+                End If
+                testFolder = "DreamBot"
+            End If
+
+            Dim testDir As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "P2P_Screenshot_Test")
+            If Not Directory.Exists(testDir) Then Directory.CreateDirectory(testDir)
+
+            Dim screenshotPath = Await ScreenshotHelpers.SnapAndSend(testDir, testFolder, testDir, AddressOf AppendLog)
+            
+            If Not String.IsNullOrWhiteSpace(screenshotPath) AndAlso File.Exists(screenshotPath) Then
+                AppendLog($"✅ Test screenshot saved to: {screenshotPath}")
+                
+                ' Send to Discord
+                AppendLog("📤 Sending test screenshot to Discord...")
+                Dim testPayload As String = DiscordHelpers.BuildTestScreenshotPayload(
+                    DISCORD_MENTION,
+                    Path.GetFileName(screenshotPath),
+                    testFolder,
+                    DateTime.Now,
+                    If(ScreenshotHelpers.UseCompositorSafe, "WGC (Compositor Safe)", "BitBlt/PrintWindow (Legacy)")
+                )
+
+                Dim err As String = Nothing
+                If DiscordHelpers.IsJson(testPayload, err) Then
+                    Await DiscordHelpers.UploadFile(WEBHOOK_URL, screenshotPath, testPayload, AddressOf AppendLog)
+                    AppendLog("✅ Test screenshot sent to Discord successfully!")
+                Else
+                    AppendLog($"⚠ Invalid JSON payload: {err}")
+                End If
+
+                ' Open in Explorer
+                Try
+                    Process.Start("explorer.exe", "/select,""" & screenshotPath & """")
+                Catch
+                End Try
+            Else
+                AppendLog("❌ Screenshot test failed. Check the log for details.")
+            End If
+        Catch ex As Exception
+            AppendLog($"❌ Screenshot test error: {ex.Message}")
+            ErrorHandler.Report(ex, "Test Screenshot")
+        End Try
+    End Sub
     Private Sub btnAddAcc_Click(sender As Object, e As EventArgs) Handles btnAddAcc.Click
         Dim newName As String = CLICreator.PromptForAccountName(Me)
         If Not String.IsNullOrWhiteSpace(newName) Then

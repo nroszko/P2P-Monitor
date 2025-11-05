@@ -87,6 +87,40 @@ Public Class ScreenshotHelpers
     Private Shared Function PrintWindow(hWnd As IntPtr, hdcBlt As IntPtr, nFlags As UInteger) As Boolean
     End Function
 
+    <DllImport("user32.dll")>
+    Private Shared Function GetDC(hWnd As IntPtr) As IntPtr
+    End Function
+
+    <DllImport("user32.dll")>
+    Private Shared Function ReleaseDC(hWnd As IntPtr, hDC As IntPtr) As Integer
+    End Function
+
+    <DllImport("gdi32.dll")>
+    Private Shared Function CreateCompatibleDC(hDC As IntPtr) As IntPtr
+    End Function
+
+    <DllImport("gdi32.dll")>
+    Private Shared Function CreateCompatibleBitmap(hDC As IntPtr, nWidth As Integer, nHeight As Integer) As IntPtr
+    End Function
+
+    <DllImport("gdi32.dll")>
+    Private Shared Function SelectObject(hDC As IntPtr, hObject As IntPtr) As IntPtr
+    End Function
+
+    <DllImport("gdi32.dll")>
+    Private Shared Function BitBlt(hdcDest As IntPtr, xDest As Integer, yDest As Integer, wDest As Integer, hDest As Integer, hdcSource As IntPtr, xSrc As Integer, ySrc As Integer, rop As Integer) As Boolean
+    End Function
+
+    <DllImport("gdi32.dll")>
+    Private Shared Function DeleteDC(hDC As IntPtr) As Boolean
+    End Function
+
+    <DllImport("gdi32.dll")>
+    Private Shared Function DeleteObject(hObject As IntPtr) As Boolean
+    End Function
+
+    Private Const SRCCOPY As Integer = &HCC0020
+
     <DllImport("dwmapi.dll")>
     Private Shared Function DwmGetWindowAttribute(hWnd As IntPtr, dwAttribute As Integer, ByRef pvAttribute As RECT, cbAttribute As Integer) As Integer
     End Function
@@ -352,6 +386,51 @@ Public Class ScreenshotHelpers
         Return result
     End Function
 
+    Private Shared Function TryBitBltBitmap(hWnd As IntPtr, Optional log As Action(Of String) = Nothing) As Bitmap
+        Dim r As RECT
+        If Not GetWindowRect(hWnd, r) Then
+            If log IsNot Nothing Then log("⚠ GetWindowRect failed for BitBlt.")
+            Return Nothing
+        End If
+
+        Dim w As Integer = Math.Max(0, r.Right - r.Left)
+        Dim h As Integer = Math.Max(0, r.Bottom - r.Top)
+        If w = 0 OrElse h = 0 Then
+            If log IsNot Nothing Then log($"⚠ Invalid bounds for BitBlt: {w}x{h}")
+            Return Nothing
+        End If
+
+        Dim hdcSrc As IntPtr = GetDC(hWnd)
+        If hdcSrc = IntPtr.Zero Then
+            If log IsNot Nothing Then log("⚠ GetDC failed for BitBlt.")
+            Return Nothing
+        End If
+
+        Dim hdcDest As IntPtr = CreateCompatibleDC(hdcSrc)
+        Dim hBitmap As IntPtr = CreateCompatibleBitmap(hdcSrc, w, h)
+        Dim hOld As IntPtr = SelectObject(hdcDest, hBitmap)
+
+        Dim success As Boolean = BitBlt(hdcDest, 0, 0, w, h, hdcSrc, 0, 0, SRCCOPY)
+
+        SelectObject(hdcDest, hOld)
+        DeleteDC(hdcDest)
+        ReleaseDC(hWnd, hdcSrc)
+
+        Dim bmp As Bitmap = Nothing
+        If success AndAlso hBitmap <> IntPtr.Zero Then
+            Try
+                bmp = Image.FromHbitmap(hBitmap)
+            Catch ex As Exception
+                If log IsNot Nothing Then log("⚠ BitBlt Image.FromHbitmap exception: " & ex.Message)
+                bmp = Nothing
+            End Try
+        End If
+
+        If hBitmap <> IntPtr.Zero Then DeleteObject(hBitmap)
+
+        Return bmp
+    End Function
+
     Private Shared Function TryPrintWindowBitmap(hWnd As IntPtr, Optional log As Action(Of String) = Nothing) As Bitmap
         Dim r As RECT
         Dim hr As Integer = DwmGetWindowAttribute(hWnd, DWMWA_EXTENDED_FRAME_BOUNDS, r, Runtime.InteropServices.Marshal.SizeOf(GetType(RECT)))
@@ -527,13 +606,55 @@ Public Class ScreenshotHelpers
                     main.AppendLog($"ℹ WGC capture failed, reverting to legacy: {ex.Message}")
                 End Try
                 If bmp IsNot Nothing Then Return bmp
-                Return Await Task.Run(Function() TryPrintWindowBitmap(hWnd, log))
-            Else
-                Return Await Task.Run(Function() TryPrintWindowBitmap(hWnd, log))
             End If
+
+            ' Try BitBlt first (more reliable for DirectX/OpenGL windows)
+            Dim bitbltResult As Bitmap = Await Task.Run(Function() TryBitBltBitmap(hWnd, log))
+            If bitbltResult IsNot Nothing AndAlso Not IsBitmapBlack(bitbltResult) Then
+                main.AppendLog("✅ Captured via BitBlt.")
+                Return bitbltResult
+            End If
+            If bitbltResult IsNot Nothing Then
+                main.AppendLog("⚠ BitBlt returned black image, trying PrintWindow...")
+                bitbltResult.Dispose()
+            End If
+
+            ' Fall back to PrintWindow
+            Dim printResult As Bitmap = Await Task.Run(Function() TryPrintWindowBitmap(hWnd, log))
+            If printResult IsNot Nothing Then
+                main.AppendLog("✅ Captured via PrintWindow.")
+            End If
+            Return printResult
         Finally
             _capSem.Release()
         End Try
+    End Function
+
+    Private Shared Function IsBitmapBlack(bmp As Bitmap) As Boolean
+        If bmp Is Nothing Then Return True
+        If bmp.Width < 10 OrElse bmp.Height < 10 Then Return True
+
+        ' Sample a few pixels to check if image is mostly black
+        Dim sampleCount As Integer = 0
+        Dim blackCount As Integer = 0
+        Dim step As Integer = Math.Max(bmp.Width \ 20, 10)
+
+        For x As Integer = step To bmp.Width - 1 Step step
+            For y As Integer = step To bmp.Height - 1 Step step
+                Try
+                    Dim pixel As Color = bmp.GetPixel(x, y)
+                    sampleCount += 1
+                    If pixel.R < 10 AndAlso pixel.G < 10 AndAlso pixel.B < 10 Then
+                        blackCount += 1
+                    End If
+                Catch
+                    ' Skip invalid pixels
+                End Try
+            Next
+        Next
+
+        ' If more than 95% of sampled pixels are black, consider it a failed capture
+        Return sampleCount > 0 AndAlso (blackCount / sampleCount) > 0.95
     End Function
 
     Private Shared Async Function TryWgcBitmap(hWnd As IntPtr, log As Action(Of String)) As Task(Of Bitmap)
