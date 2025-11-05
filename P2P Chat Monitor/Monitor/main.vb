@@ -1942,25 +1942,25 @@ Public Class main
             AppendLog("🧪 Testing screenshot capture...")
             AppendLog($"Screenshot mode: {If(ScreenshotHelpers.UseCompositorSafe, "Compositor Safe (WGC)", "Legacy (BitBlt/PrintWindow)")}")
 
-            ' Validate webhook is configured - check for any webhook
+            ' Validate webhook is configured - read directly from UI controls
             Dim testWebhook As String = Nothing
-            If Not String.IsNullOrWhiteSpace(SELFIE_CHANNEL) Then
-                testWebhook = SELFIE_CHANNEL
+            If Not String.IsNullOrWhiteSpace(selfieID.Text.Trim()) Then
+                testWebhook = selfieID.Text.Trim()
                 AppendLog("Using Selfie webhook for test.")
-            ElseIf Not String.IsNullOrWhiteSpace(WEBHOOK_URL) Then
-                testWebhook = WEBHOOK_URL
+            ElseIf Not String.IsNullOrWhiteSpace(txtWebhook.Text.Trim()) Then
+                testWebhook = txtWebhook.Text.Trim()
                 AppendLog("Using Default webhook for test.")
-            ElseIf Not String.IsNullOrWhiteSpace(CHAT_CHANNEL) Then
-                testWebhook = CHAT_CHANNEL
+            ElseIf Not String.IsNullOrWhiteSpace(chatID.Text.Trim()) Then
+                testWebhook = chatID.Text.Trim()
                 AppendLog("Using Chat webhook for test.")
-            ElseIf Not String.IsNullOrWhiteSpace(QUEST_CHANNEL) Then
-                testWebhook = QUEST_CHANNEL
+            ElseIf Not String.IsNullOrWhiteSpace(questID.Text.Trim()) Then
+                testWebhook = questID.Text.Trim()
                 AppendLog("Using Quest webhook for test.")
-            ElseIf Not String.IsNullOrWhiteSpace(ERROR_CHANNEL) Then
-                testWebhook = ERROR_CHANNEL
+            ElseIf Not String.IsNullOrWhiteSpace(errorID.Text.Trim()) Then
+                testWebhook = errorID.Text.Trim()
                 AppendLog("Using Error webhook for test.")
-            ElseIf Not String.IsNullOrWhiteSpace(TASK_CHANNEL) Then
-                testWebhook = TASK_CHANNEL
+            ElseIf Not String.IsNullOrWhiteSpace(taskID.Text.Trim()) Then
+                testWebhook = taskID.Text.Trim()
                 AppendLog("Using Task webhook for test.")
             End If
 
@@ -1994,7 +1994,7 @@ Public Class main
                 ' Send to Discord
                 AppendLog("📤 Sending test screenshot to Discord...")
                 Dim testPayload As String = DiscordHelpers.BuildTestScreenshotPayload(
-                    DISCORD_MENTION,
+                    txtMention.Text.Trim(),
                     Path.GetFileName(screenshotPath),
                     testFolder,
                     DateTime.Now,
