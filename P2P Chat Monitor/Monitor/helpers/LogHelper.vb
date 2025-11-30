@@ -236,6 +236,12 @@ Public Class LogHelper
             If skillIssue Then
                 Dim skillFailures = ScanFailures(onlyNew, skillFailureTriggers, skillFailureReasons, "Skill")
                 For Each failure In skillFailures
+                    ' Skip birdhouse "completion" false positives - these are not real errors
+                    If failure.Trigger.IndexOf("Birdhouse", StringComparison.OrdinalIgnoreCase) >= 0 AndAlso
+                       failure.Reason.IndexOf("All birdhouses done", StringComparison.OrdinalIgnoreCase) >= 0 Then
+                        Continue For
+                    End If
+
                     Dim reasonOut = failure.Reason
                     If Not String.IsNullOrWhiteSpace(failure.Extra) Then reasonOut &= $" ({failure.Extra})"
                     AppendLog($"❌ Skill Failure detected: {failure.Trigger} / {reasonOut}")

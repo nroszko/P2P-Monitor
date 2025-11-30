@@ -18,9 +18,9 @@ Public Class MetricsHelper
     End Function
 
     Public Shared Sub StartMetrics(log As Action(Of String))
+        ' TELEMETRY DISABLED - No heartbeats will be sent to external servers
         _log = log
-        Dim initialDue = 5_000 + ((Environment.TickCount And &H7FFFFFFF) Mod 20_000)
-        metricsTimer = New System.Threading.Timer(AddressOf MetricsTick, Nothing, initialDue, Timeout.Infinite)
+        Return
     End Sub
 
     Private Shared Function PickMetricsWebhook() As String
